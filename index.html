@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Dengar & Baca BM</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f6f8;
+    color: #111;
+}
+
+.container {
+    max-width: 700px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    font-size: 30px;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.consonants {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 5px 0 15px;
+}
+
+.consonants button {
+    min-width: 55px;
+    padding: 13px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    background: white;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.consonants button.active {
+    border-color: #3578e5;
+    background: #eaf1ff;
+}
+
+.card {
+    background: white;
+    border-radius: 25px;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px #ddd;
+}
+
+.instruction {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.sequence {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.letter {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f1f2f5;
+    border-radius: 18px;
+    font-size: 45px;
+    font-weight: bold;
+}
+
+.symbol {
+    font-size: 35px;
+    font-weight: bold;
+    color: #777;
+}
+
+.syllable {
+    margin: 35px 0;
+    font-size: 90px;
+    font-weight: 900;
+}
+
+.highlight {
+    background: #dce8ff !important;
+    outline: 4px solid #3578e5;
+}
+
+button.action {
+    width: 90%;
+    max-width: 300px;
+    padding: 17px;
+    margin: 7px;
+    border-radius: 15px;
+    border: 2px solid #3578e5;
+    background: #eaf1ff;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+button.next {
+    background: white;
+}
+
+.progress {
+    margin-top: 25px;
+    font-size: 16px;
+    color: #777;
+}
+
+.bar {
+    height: 8px;
+    background: #ddd;
+    border-radius: 10px;
+    margin-top: 8px;
+}
+
+.barFill {
+    height: 100%;
+    background: #3578e5;
+    border-radius: 10px;
+    width: 20%;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🔊 Dengar & Baca</h1>
+
+<div class="subtitle">
+Aktiviti 2 • Suku Kata Terbuka
+</div>
+
+<div class="consonants" id="consonants"></div>
+
+<div class="card">
+
+<div class="instruction">
+Dengar dahulu, kemudian baca bersama-sama
+</div>
+
+<div class="sequence">
+
+<div class="letter" id="letter1">B</div>
+
+<div class="symbol">+</div>
+
+<div class="letter" id="letter2">A</div>
+
+<div class="symbol">→</div>
+
+<div class="letter" id="combined">BA</div>
+
+</div>
+
+<div class="syllable" id="bigSyllable">
+BA
+</div>
+
+<button class="action" onclick="listen()">
+🔊 Dengar & Baca
+</button>
+
+<br>
+
+<button class="action next" onclick="nextSyllable()">
+➡️ Seterusnya
+</button>
+
+<div class="progress">
+<span id="progressText">1 / 5</span>
+
+<div class="bar">
+<div class="barFill" id="barFill"></div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+/* ===================================
+   HURUF KONSONAN
+=================================== */
+
+const consonants = [
+    "B","M","S","T","K","P","L","N",
+    "R","D","G","J","C","H","W","Y"
+];
+
+/* ===================================
+   VOKAL
+=================================== */
+
+const vowels = ["A","I","U","O","E"];
+
+
+/* ===================================
+   NAMA HURUF BAHASA MELAYU
+=================================== */
+
+const letterNames = {
+
+    A: "e",
+    B: "bi",
+    C: "si",
+    D: "di",
+    E: "i",
+    F: "ef",
+    G: "ji",
+    H: "ec",
+    I: "ai",
+    J: "je",
+    K: "ke",
+    L: "el",
+    M: "em",
+    N: "en",
+    O: "o",
+    P: "pi",
+    Q: "kiu",
+    R: "ar",
+    S: "es",
+    T: "ti",
+    U: "yu",
+    V: "vi",
+    W: "dabliu",
+    X: "eks",
+    Y: "wai",
+    Z: "zet"
+
+};
+
+
+/* ===================================
+   PEMBOLEH UBAH
+=================================== */
+
+let currentConsonant = "B";
+let currentVowel = 0;
+
+
+/* ===================================
+   PAPARKAN KONSONAN
+=================================== */
+
+const consonantBox =
+document.getElementById("consonants");
+
+consonants.forEach(letter => {
+
+    const button = document.createElement("button");
+
+    button.textContent = letter;
+
+    if (letter === "B") {
+        button.classList.add("active");
+    }
+
+    button.onclick = function() {
+
+        currentConsonant = letter;
+        currentVowel = 0;
+
+        document
+        .querySelectorAll(".consonants button")
+        .forEach(b => b.classList.remove("active"));
+
+        button.classList.add("active");
+
+        updateScreen();
+
+    };
+
+    consonantBox.appendChild(button);
+
+});
+
+
+/* ===================================
+   KEMASKINI SKRIN
+=================================== */
+
+function updateScreen() {
+
+    const vowel = vowels[currentVowel];
+
+    const syllable =
+        currentConsonant + vowel;
+
+    document.getElementById("letter1")
+        .textContent = currentConsonant;
+
+    document.getElementById("letter2")
+        .textContent = vowel;
+
+    document.getElementById("combined")
+        .textContent = syllable;
+
+    document.getElementById("bigSyllable")
+        .textContent = syllable;
+
+    document.getElementById("progressText")
+        .textContent =
+        (currentVowel + 1) + " / 5";
+
+    document.getElementById("barFill")
+        .style.width =
+        ((currentVowel + 1) * 20) + "%";
+
+}
+
+
+/* ===================================
+   AUDIO
+=================================== */
+
+function speakText(text, element, callback) {
+
+    element.classList.add("highlight");
+
+    const speech =
+        new SpeechSynthesisUtterance(text);
+
+    speech.lang = "ms-MY";
+
+    speech.rate = 0.65;
+
+    speech.pitch = 1;
+
+    speech.onend = function() {
+
+        element.classList.remove("highlight");
+
+        if (callback) {
+            callback();
+        }
+
+    };
+
+    speech.onerror = function() {
+
+        element.classList.remove("highlight");
+
+        if (callback) {
+            callback();
+        }
+
+    };
+
+    speechSynthesis.speak(speech);
+
+}
+
+
+/* ===================================
+   DENGAR:
+
+   B → A → BA
+
+   "bi... e... ba"
+=================================== */
+
+function listen() {
+
+    speechSynthesis.cancel();
+
+    const vowel =
+        vowels[currentVowel];
+
+    const syllable =
+        currentConsonant + vowel;
+
+    const first =
+        document.getElementById("letter1");
+
+    const second =
+        document.getElementById("letter2");
+
+    const combined =
+        document.getElementById("combined");
+
+    speakText(
+        letterNames[currentConsonant],
+        first,
+        function() {
+
+            speakText(
+                letterNames[vowel],
+                second,
+                function() {
+
+                    speakText(
+                        syllable.toLowerCase(),
+                        combined
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
+
+/* ===================================
+   SETERUSNYA
+=================================== */
+
+function nextSyllable() {
+
+    speechSynthesis.cancel();
+
+    currentVowel++;
+
+    if (currentVowel >= vowels.length) {
+
+        currentVowel = 0;
+
+        alert(
+            "🎉 Hebat! Kamu sudah selesai."
+        );
+
+    }
+
+    updateScreen();
+
+}
+
+
+/* ===================================
+   MULA
+=================================== */
+
+updateScreen();
+
+</script>
+
+</body>
+</html>
