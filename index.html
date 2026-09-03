@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BM Membaca - Suku Kata</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f7f8fa;
+    color: #111;
+}
+
+header {
+    background: white;
+    padding: 22px 16px 14px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+h1 {
+    margin: 0;
+    font-size: 30px;
+}
+
+.subtitle {
+    margin-top: 6px;
+    color: #666;
+    font-size: 16px;
+}
+
+.container {
+    max-width: 700px;
+    margin: auto;
+    padding: 15px;
+}
+
+/* CONSONANT BUTTONS */
+
+.consonants {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 5px 2px 12px;
+}
+
+.consonants button {
+    min-width: 58px;
+    height: 52px;
+    border: 2px solid #ddd;
+    background: white;
+    border-radius: 15px;
+    font-size: 21px;
+    font-weight: bold;
+}
+
+.consonants button.active {
+    background: #e8f0ff;
+    border-color: #4285f4;
+    color: #1769e0;
+}
+
+/* MAIN CARD */
+
+.card {
+    background: white;
+    border-radius: 25px;
+    padding: 25px 18px;
+    box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+    text-align: center;
+}
+
+.activity-title {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.instruction {
+    color: #666;
+    margin: 8px 0 25px;
+}
+
+/* LETTER DISPLAY */
+
+.letters {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.letter-box {
+    width: 115px;
+    height: 115px;
+    background: #f4f5f7;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 70px;
+    font-weight: 900;
+    transition: 0.25s;
+}
+
+.plus {
+    font-size: 42px;
+    font-weight: bold;
+}
+
+.arrow {
+    font-size: 45px;
+    font-weight: bold;
+}
+
+.letter-box.highlight {
+    background: #dbe9ff;
+    border: 4px solid #4285f4;
+    transform: scale(1.05);
+}
+
+.result {
+    font-size: 76px;
+    font-weight: 900;
+    margin: 20px 0 30px;
+    letter-spacing: 2px;
+    min-height: 95px;
+}
+
+.result.highlight {
+    color: #1769e0;
+    transform: scale(1.08);
+    transition: 0.2s;
+}
+
+/* BUTTONS */
+
+.main-button {
+    width: 100%;
+    padding: 18px;
+    border-radius: 18px;
+    border: 2px solid #4285f4;
+    background: #e8f0ff;
+    font-size: 21px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.next-button {
+    width: 100%;
+    padding: 16px;
+    border-radius: 18px;
+    border: 2px solid #ddd;
+    background: white;
+    font-size: 19px;
+    font-weight: bold;
+}
+
+.syllables {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.syllables button {
+    padding: 18px 5px;
+    border-radius: 15px;
+    border: 2px solid #ddd;
+    background: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.syllables button:active {
+    background: #e8f0ff;
+}
+
+.progress {
+    margin-top: 22px;
+    color: #777;
+    font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>🔊 Dengar & Baca</h1>
+    <div class="subtitle">Aktiviti 2 • Suku Kata Terbuka (K + V)</div>
+</header>
+
+<div class="container">
+
+    <div class="consonants" id="consonants"></div>
+
+    <div class="card">
+
+        <div class="activity-title">
+            Dengar dan baca bersama-sama
+        </div>
+
+        <div class="instruction">
+            Dengar: huruf → huruf → suku kata
+        </div>
+
+        <div class="letters">
+            <div class="letter-box" id="consonantBox">B</div>
+            <div class="plus">+</div>
+            <div class="letter-box" id="vowelBox">A</div>
+            <div class="arrow">→</div>
+        </div>
+
+        <div class="result" id="result">BA</div>
+
+        <button class="main-button" onclick="listenCurrent()">
+            🔊 Dengar & Baca
+        </button>
+
+        <button class="next-button" onclick="nextSyllable()">
+            ➡️ Seterusnya
+        </button>
+
+        <div class="syllables" id="syllables"></div>
+
+        <div class="progress" id="progress">
+            1 / 5
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+/* =========================================================
+   DATA
+   ========================================================= */
+
+const vowels = ["A", "I", "U", "O", "E"];
+
+const consonants = [
+    "B","C","D","F","G","H","J","K","L","M",
+    "N","P","Q","R","S","T","V","W","X","Y","Z"
+];
+
+let currentConsonant = "B";
+let currentIndex = 0;
+
+
+/* =========================================================
+   CREATE CONSONANT BUTTONS
+   ========================================================= */
+
+const consonantContainer =
+    document.getElementById("consonants");
+
+consonants.forEach(letter => {
+
+    const button = document.createElement("button");
+
+    button.textContent = letter;
+
+    if (letter === currentConsonant) {
+        button.classList.add("active");
+    }
+
+    button.onclick = () => {
+
+        currentConsonant = letter;
+        currentIndex = 0;
+
+        document.querySelectorAll(".consonants button")
+            .forEach(b => b.classList.remove("active"));
+
+        button.classList.add("active");
+
+        updateDisplay();
+    };
+
+    consonantContainer.appendChild(button);
+});
+
+
+/* =========================================================
+   SPEECH
+   ========================================================= */
+
+/*
+   Important:
+   We are NOT teaching the phonetic sound of B.
+
+   The app reads the MALAY LETTER NAME:
+
+   B = "bi"
+   A = "a"
+   BA = "ba"
+
+   Then:
+
+   B → I → BI
+*/
+
+function speak(text) {
+
+    return new Promise(resolve => {
+
+        window.speechSynthesis.cancel();
+
+        const speech = new SpeechSynthesisUtterance(text);
+
+        speech.lang = "ms-MY";
+        speech.rate = 0.75;
+        speech.pitch = 1;
+
+        speech.onend = resolve;
+
+        window.speechSynthesis.speak(speech);
+    });
+}
+
+
+/* =========================================================
+   MALAY LETTER NAMES
+   ========================================================= */
+
+const letterNames = {
+
+    A: "a",
+    B: "bi",
+    C: "si",
+    D: "di",
+    E: "e",
+    F: "ef",
+    G: "ji",
+    H: "eich",
+    I: "i",
+    J: "je",
+    K: "ke",
+    L: "el",
+    M: "em",
+    N: "en",
+    O: "o",
+    P: "pi",
+    Q: "kiu",
+    R: "ar",
+    S: "es",
+    T: "ti",
+    U: "u",
+    V: "vi",
+    W: "dabliu",
+    X: "eks",
+    Y: "wai",
+    Z: "zed"
+
+};
+
+
+/* =========================================================
+   LISTEN & READ
+   ========================================================= */
+
+async function listenCurrent() {
+
+    const consonantBox =
+        document.getElementById("consonantBox");
+
+    const vowelBox =
+        document.getElementById("vowelBox");
+
+    const result =
+        document.getElementById("result");
+
+    const vowel = vowels[currentIndex];
+
+    const syllable =
+        currentConsonant + vowel;
+
+
+    /* Show correct syllable */
+
+    result.textContent = syllable;
+
+
+    /* Highlight consonant */
+
+    consonantBox.classList.add("highlight");
+
+    await speak(letterNames[currentConsonant]);
+
+    consonantBox.classList.remove("highlight");
+
+
+    /* Highlight vowel */
+
+    vowelBox.classList.add("highlight");
+
+    await speak(letterNames[vowel]);
+
+    vowelBox.classList.remove("highlight");
+
+
+    /* Read syllable */
+
+    result.classList.add("highlight");
+
+    await speak(syllable.toLowerCase());
+
+    result.classList.remove("highlight");
+}
+
+
+/* =========================================================
+   NEXT
+   ========================================================= */
+
+function nextSyllable() {
+
+    currentIndex++;
+
+    if (currentIndex >= vowels.length) {
+        currentIndex = 0;
+    }
+
+    updateDisplay();
+}
+
+
+/* =========================================================
+   UPDATE DISPLAY
+   ========================================================= */
+
+function updateDisplay() {
+
+    const vowel = vowels[currentIndex];
+
+    document.getElementById("consonantBox")
+        .textContent = currentConsonant;
+
+    document.getElementById("vowelBox")
+        .textContent = vowel;
+
+    document.getElementById("result")
+        .textContent = currentConsonant + vowel;
+
+    document.getElementById("progress")
+        .textContent =
+        `${currentIndex + 1} / ${vowels.length}`;
+
+    createSyllableButtons();
+}
+
+
+/* =========================================================
+   SYLLABLE BUTTONS
+   ========================================================= */
+
+function createSyllableButtons() {
+
+    const container =
+        document.getElementById("syllables");
+
+    container.innerHTML = "";
+
+    vowels.forEach((vowel, index) => {
+
+        const button =
+            document.createElement("button");
+
+        button.textContent =
+            currentConsonant + vowel;
+
+        button.onclick = () => {
+
+            currentIndex = index;
+            updateDisplay();
+
+            listenCurrent();
+        };
+
+        container.appendChild(button);
+    });
+}
+
+
+/* =========================================================
+   START
+   ========================================================= */
+
+updateDisplay();
+
+</script>
+
+</body>
+</html>
